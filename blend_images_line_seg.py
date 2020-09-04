@@ -19,7 +19,7 @@ class ImgBlend(object):
         self.img_raw = Image()
         self.img_semantic = Image()
         self.img_blend = Image()
-        rospy.Subscriber('/rear_cam/image_raw', Image, self.callback_img_raw)
+        rospy.Subscriber('/rear_cam_crop/image_raw', Image, self.callback_img_raw)
         rospy.Subscriber('semantic_color', Image, self.callback_img_semantic)
         rospy.Subscriber('line_segments', LineSegArray, self.callback_line_seg)
         rospy.spin()

@@ -54,7 +54,7 @@ class LineSegmentDetector(object):
     def __init__(self):
 
         self.pub = rospy.Publisher('line_segments', LineSegArray, queue_size = 3)
-        rospy.Subscriber('rear_cam/image_raw', Image, self.callback)
+        rospy.Subscriber('rear_cam_crop/image_raw', Image, self.callback)
         self.img_input = Image()
 
         args = docopt(__doc__)
