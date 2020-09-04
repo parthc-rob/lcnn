@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="line_segment_detector" pkg="line_segment_detector" type="demo_ros.py" args="-d 0 $(find line_segment_detector)/config/wireframe.yaml $(find line_segment_detector)/checkpoint/190418-201834-f8934c6-lr4d10-312k.pth.tar"/>
+</launch>
