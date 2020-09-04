@@ -15,9 +15,9 @@ Options:
 """
 import rospy
 from sensor_msgs.msg import Image
-from std_msgs.msg import Float32MultiArray, MultiArrayDimension
 import cv_bridge
 from line_segment_detector.msg import LineSeg, LineSegArray
+from geometry_msgs.msg import Point
 
 import os
 import os.path as osp
@@ -53,7 +53,7 @@ def c(x):
 class LineSegmentDetector(object):
     def __init__(self):
 
-        self.pub = rospy.Publisher('line_segments', Float32MultiArray, queue_size = 3)
+        self.pub = rospy.Publisher('line_segments', LineSegArray, queue_size = 3)
         rospy.Subscriber('rear_cam/image_raw', Image, self.callback)
         self.img_input = Image()
 
@@ -139,47 +139,16 @@ class LineSegmentDetector(object):
         # postprocess lines to remove overlapped lines
         diag = (im.shape[0] ** 2 + im.shape[1] ** 2) ** 0.5
         nlines, nscores = postprocess(lines, scores, diag * 0.01, 0, False)
-        nlines_ = np.reshape(nlines, (nlines.shape[0], nlines.shape[1] + nlines.shape[2]) )
-        nlines_flattened = np.reshape(np.transpose(nlines_), nlines_.shape[0]*nlines_.shape[1])
-        #rospy.loginfo(nlines_flattened)
-        #nlines_str = ['{:f}'.format(item) for item in nlines_]
-        #np.savetxt('nlines.txt', nlines_, fmt='%f')
 
-        ##### Publish line segments
-        msg_linesegments = Float32MultiArray()
-        msg_linesegments.data = nlines_flattened
-        msg_linesegments.layout.dim = [MultiArrayDimension(), MultiArrayDimension()]
-        msg_linesegments.layout.dim[0].size = nlines_.shape[1] #columns - x1 y1 x2 y2
-        msg_linesegments.layout.dim[1].size = nlines_.shape[0] #rows - no. of lines 
-
-        msg_linesegments.layout.dim[0].stride = nlines_.shape[1] * nlines_.shape[0]
-        msg_linesegments.layout.dim[0].label = "pointpair"
-
-        #dstride0 = msg_linesegments.layout.dim[0].stride
-        msg_linesegments.layout.dim[1].stride = nlines_.shape[0]
-        msg_linesegments.layout.dim[1].label = "segment"
-        #dstride1 = msg_linesegments.layout.dim[1].stride
-
-        #for ix,iy in np.ndindex(nlines_.shape):
-        #    print(nlines_[ix,iy])
-        self.pub.publish(msg_linesegments)
-        #for i, t in enumerate([0.94, 0.95, 0.96, 0.97, 0.98, 0.99]):
-        #    plt.gca().set_axis_off()
-        #    plt.subplots_adjust(top=1, bottom=0, right=1, left=0, hspace=0, wspace=0)
-        #    plt.margins(0, 0)
-        #    for (a, b), s in zip(nlines, nscores):
-        #        if s < t:
-        #            continue
-        #        plt.plot([a[1], b[1]], [a[0], b[0]], c=c(s), linewidth=2, zorder=s)
-        #        plt.scatter(a[1], a[0], **PLTOPTS)
-        #        plt.scatter(b[1], b[0], **PLTOPTS)
-            #plt.gca().xaxis.set_major_locator(plt.NullLocator())
-            #plt.gca().yaxis.set_major_locator(plt.NullLocator())
-            #plt.imshow(im)
-            #plt.savefig(imname.replace(".png", f"-{t:.02f}.svg"), bbox_inches="tight")
-            #plt.show()
-            #plt.close()
-
+        segment_array = LineSegArray()
+        segment_array_list = list()
+        for idx_seg in range(nlines.shape[0]):
+            segment = LineSeg()
+            segment.start = Point( nlines[idx_seg, 0, 0], nlines[idx_seg, 0, 1], 0.)
+            segment.end = Point( nlines[idx_seg, 1, 0], nlines[idx_seg, 1, 1], 0.)
+            segment_array_list.append(segment)
+        segment_array.line_segments = segment_array_list
+        self.pub.publish(segment_array)
 
 if __name__ == "__main__":
     print("... init node")
