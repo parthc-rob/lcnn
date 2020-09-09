@@ -5,3 +5,4 @@ docopt
 scikit-learn
 scikit-image
 matplotlib
+opencv-python==4.2.0.32
